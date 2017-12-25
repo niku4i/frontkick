@@ -104,7 +104,7 @@ module Frontkick
         end
       rescue Frontkick::TimeoutLocal => e
         if opts[:timeout_kill]
-          Process.kill('SIGINT', pid)
+          Process.kill('SIGTERM', pid)
           exit_code = wait_thr.value.exitstatus
           process_wait(pid)
         end
