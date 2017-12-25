@@ -105,7 +105,11 @@ module Frontkick
         end
       rescue Frontkick::TimeoutLocal => e
         if opts[:timeout_kill]
-          Process.kill(opts[:timeout_kill_signal], pid)
+          if opts[:timeout_kill_pgroup]
+            Process.kill(opts[:timeout_kill_signal], - Process.getpgid(pid))
+          else
+            Process.kill(opts[:timeout_kill_signal], pid)
+          end
           exit_code = wait_thr.value.exitstatus
           process_wait(pid)
         end
@@ -145,6 +149,7 @@ module Frontkick
       opts.dup.tap {|o|
         o.delete(:timeout_kill)
         o.delete(:timeout_kill_signal)
+        o.delete(:timeout_kill_pgroup)
         o.delete(:exclusive)
         o.delete(:exclusive_blocking)
         o.delete(:timeout)
