@@ -20,7 +20,7 @@ module Frontkick
       opts[:timeout_kill_signal] = 'SIGINT' unless opts.has_key?(:timeout_kill_signal) # default: 'SIGINT'
 
       exit_code, duration = nil
-      stdin, stdout, stderr, wait_thr, pid = nil
+      stdin, stdout, stderr, wait_thr, pid, pgid = nil
 
       if opts[:out]
         if opts[:out].is_a?(String)
@@ -67,6 +67,7 @@ module Frontkick
               }
               stdin.close
               pid = wait_thr.pid
+              pgid = Process.getpgid(pid)
 
               yield(wait_thr) if block_given?
 
@@ -93,6 +94,7 @@ module Frontkick
               }
               stdin.close
               pid = wait_thr.pid
+              pgid = Process.getpgid(pid)
 
               yield(wait_thr) if block_given?
 
@@ -106,7 +108,7 @@ module Frontkick
       rescue Frontkick::TimeoutLocal => e
         if opts[:timeout_kill]
           if opts[:timeout_kill_pgroup]
-            Process.kill(opts[:timeout_kill_signal], - Process.getpgid(pid))
+            Process.kill(opts[:timeout_kill_signal], - pgid)
           else
             Process.kill(opts[:timeout_kill_signal], pid)
           end
